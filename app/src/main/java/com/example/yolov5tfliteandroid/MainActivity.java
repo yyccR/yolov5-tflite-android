@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
     private PreviewView cameraPreviewMatch;
     private PreviewView cameraPreviewWrap;
-    private ImageView boxLabelView;
+    private ImageView boxLabelCanvas;
     private Switch immersive;
     private TextView inferenceTimeTextView;
     private TextView frameSizeTextView;
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         cameraPreviewWrap.setScaleType(PreviewView.ScaleType.FILL_START);
 
         // box/label画面
-        boxLabelView = findViewById(R.id.box_label_canvas);
+        boxLabelCanvas = findViewById(R.id.box_label_canvas);
 
         // 沉浸式体验按钮
         immersive = findViewById(R.id.immersive);
@@ -92,9 +92,11 @@ public class MainActivity extends AppCompatActivity {
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
         Log.i("image", "rotation: " + rotation);
 
+        cameraProcess.showCameraSupportSize(MainActivity.this);
+
         // 默认打开时时全图模式
         cameraPreviewMatch.removeAllViews();
-        FullImageAnalyse fullImageAnalyse = new FullImageAnalyse(cameraPreviewWrap, rotation);
+        FullImageAnalyse fullImageAnalyse = new FullImageAnalyse(MainActivity.this, cameraPreviewWrap,boxLabelCanvas, rotation);
         cameraProcess.startCamera(MainActivity.this, fullImageAnalyse, cameraPreviewWrap);
 
         immersive.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -109,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     // 进入全图模式
                     cameraPreviewMatch.removeAllViews();
-                    FullImageAnalyse fullImageAnalyse = new FullImageAnalyse(cameraPreviewWrap, rotation);
+                    FullImageAnalyse fullImageAnalyse = new FullImageAnalyse(MainActivity.this, cameraPreviewWrap,boxLabelCanvas, rotation);
                     cameraProcess.startCamera(MainActivity.this, fullImageAnalyse, cameraPreviewWrap);
                 }
             }

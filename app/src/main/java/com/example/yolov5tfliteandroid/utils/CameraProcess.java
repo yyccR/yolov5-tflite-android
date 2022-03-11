@@ -68,7 +68,7 @@ public class CameraProcess {
                 try {
                     ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
                     ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                            //.setTargetResolution(new Size(960, 1280))
+                            .setTargetResolution(new Size(480, 640))
                             //.setTargetRotation(Surface.ROTATION_90)
                             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build();
                     imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(context), analyzer);

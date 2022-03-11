@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.os.Binder;
 import android.os.Build;
 import android.util.Log;
+import android.util.Size;
 
 import com.example.yolov5tfliteandroid.utils.Recognition;
 
@@ -33,6 +34,8 @@ import java.util.Map;
 
 public class Yolov5TFLiteDetector {
 
+    private Size inputSize;
+    private int[] outputSize;
     private Boolean isInt8;
     private float detectThreshold;
     private String modelFile;
@@ -41,13 +44,19 @@ public class Yolov5TFLiteDetector {
     private List<String> associatedAxisLabels;
     Interpreter.Options options;
 
-    public Yolov5TFLiteDetector(String modelFile, String labelFile, Boolean isInt8){
+    public Yolov5TFLiteDetector(String modelFile, String labelFile, Boolean isInt8, Size inputSize,
+                                int[] outputSize){
         this.modelFile = modelFile;
         this.labelFile = labelFile;
         this.isInt8 = isInt8;
         this.options = new Interpreter.Options();
         this.detectThreshold = (float) 0.5;
+        this.inputSize = inputSize;
+        this.outputSize = outputSize;
     }
+
+    public String getModelFile(){return this.modelFile;}
+    public String getLabelFile(){return this.labelFile;}
 
     /**
      * 初始化模型, 可以通过 addNNApiDelegate(), addGPUDelegate()提前加载相应代理
@@ -56,6 +65,7 @@ public class Yolov5TFLiteDetector {
     public void initialModel(Context activity) {
         // Initialise the model
         try{
+
 
             ByteBuffer tfliteModel
                     = FileUtil.loadMappedFile(activity, modelFile);
@@ -83,7 +93,7 @@ public class Yolov5TFLiteDetector {
         // yolov5s-tflite的输入是:[1, 320, 320,3], 摄像头每一帧图片需要resize,再归一化
         ImageProcessor imageProcessor =
                 new ImageProcessor.Builder()
-                        .add(new ResizeOp(320, 320, ResizeOp.ResizeMethod.BILINEAR))
+                        .add(new ResizeOp(inputSize.getHeight(), inputSize.getWidth(), ResizeOp.ResizeMethod.BILINEAR))
                         .add(new NormalizeOp(0,255))
                         .build();
         TensorImage yolov5sTfliteInput = new TensorImage(DataType.FLOAT32);
@@ -91,7 +101,7 @@ public class Yolov5TFLiteDetector {
         yolov5sTfliteInput = imageProcessor.process(yolov5sTfliteInput);
 
 
-        // yolov5s-tflite的输出是:[1, 6300, 85], 可以从v5的GitHub release处找到相关tflite模型.
+        // yolov5s-tflite的输出是:[1, 6300, 85], 可以从v5的GitHub release处找到相关tflite模型, 输出是[0,1], 处理到320.
         TensorBuffer probabilityBuffer =
                 TensorBuffer.createFixedSize(new int[]{1, 6300, 85}, DataType.FLOAT32);
 
@@ -100,32 +110,41 @@ public class Yolov5TFLiteDetector {
             // 这里tflite默认会加一个batch=1的纬度
             tflite.run(yolov5sTfliteInput.getBuffer(), probabilityBuffer.getBuffer());
         }
+        float[] recognitionArray = probabilityBuffer.getFloatArray();
+
+//        Log.i("model", "result "+recognitionArray[1]*320);
+
+//        for(int i = 0; i < recognitionArray.length / 6300; i++){
+//            if(recognitionArray[i]>1.){
+
+//            }
+//        }
 
         // 输出数据需要放大到图片尺度下
-
-        if (null != associatedAxisLabels) {
-            // Map of labels and their corresponding probability
-            TensorLabel labels = new TensorLabel(associatedAxisLabels,
-                    probabilityProcessor.process(probabilityBuffer));
-
-            // Create a map to access the result based on label
-            Map<String, Float> floatMap = labels.getMapWithFloatValue();
-        }
+//
+//        if (null != associatedAxisLabels) {
+//            // Map of labels and their corresponding probability
+//            TensorLabel labels = new TensorLabel(associatedAxisLabels,
+//                    probabilityProcessor.process(probabilityBuffer));
+//
+//            // Create a map to access the result based on label
+//            Map<String, Float> floatMap = labels.getMapWithFloatValue();
+//        }
 
         return recognitions;
     }
 
 
-    /**
-     * 非极大抑制
-     * @param recognitions
-     * @return
-     */
-    private ArrayList<Recognition> nms(ArrayList<Recognition> recognitions){
-
-
-
-    }
+//    /**
+//     * 非极大抑制
+//     * @param recognitions
+//     * @return
+//     */
+//    private ArrayList<Recognition> nms(ArrayList<Recognition> recognitions){
+//
+//
+//
+//    }
 
 
     /**

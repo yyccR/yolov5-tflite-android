@@ -1,29 +1,49 @@
 package com.example.yolov5tfliteandroid.analysis;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.Log;
+import android.util.Size;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.view.PreviewView;
 
+import com.example.yolov5tfliteandroid.MainActivity;
+import com.example.yolov5tfliteandroid.detector.Yolov5TFLiteDetector;
 import com.example.yolov5tfliteandroid.utils.ImageProcess;
 
 public class FullImageAnalyse implements ImageAnalysis.Analyzer {
 
+    ImageView boxLabelCanvas;
     PreviewView previewView;
     ImageProcess imageProcess;
     int rotation;
+    private Yolov5TFLiteDetector yolov5TFLiteDetector;
 
-    public FullImageAnalyse(PreviewView previewView, int rotation) {
+    public FullImageAnalyse(Context context, PreviewView previewView, ImageView boxLabelCanvas, int rotation) {
         this.previewView = previewView;
+        this.boxLabelCanvas = boxLabelCanvas;
         this.rotation = rotation;
         this.imageProcess = new ImageProcess();
+        try{
+            this.yolov5TFLiteDetector = new Yolov5TFLiteDetector(
+                    "yolov5s-fp16-320-metadata.tflite",
+                    "coco_label.txt",
+                    false,
+                    new Size(320,320),
+                    new int[]{1,6300,85});
+            this.yolov5TFLiteDetector.initialModel(context);
+            Log.i("model", "Success loading model" + this.yolov5TFLiteDetector.getModelFile());
+        } catch (Exception e) {
+            Log.e("image", "load model error: "+ e.getMessage()+e.toString());
+        }
     }
 
     @Override
@@ -36,7 +56,7 @@ public class FullImageAnalyse implements ImageAnalysis.Analyzer {
         ImageProxy.PlaneProxy[] planes = image.getPlanes();
         int imageHeight = image.getHeight();
         int imagewWidth = image.getWidth();
-        Log.i("image size", imageHeight + "/" + imagewWidth);
+//        Log.i("image size", imageHeight + "/" + imagewWidth);
 
         imageProcess.fillBytes(planes, yuvBytes);
         int yRowStride = planes[0].getRowStride();
@@ -58,8 +78,10 @@ public class FullImageAnalyse implements ImageAnalysis.Analyzer {
         // 原图bitmap
         Bitmap imageBitmap = Bitmap.createBitmap(imagewWidth, imageHeight, Bitmap.Config.ARGB_8888);
         imageBitmap.setPixels(rgbBytes, 0, imagewWidth, 0, 0, imagewWidth, imageHeight);
+//        yolov5TFLiteDetector.detect(imageBitmap);
+//        Log.i("image ","has alpha"+imageBitmap.hasAlpha());
 
-        // 图片适应屏幕fill_start格式的bitmap
+//        // 图片适应屏幕fill_start格式的bitmap
         double scale = Math.max(
                 previewHeight / (double) (rotation % 180 == 0 ? imagewWidth : imageHeight),
                 previewWidth / (double) (rotation % 180 == 0 ? imageHeight : imagewWidth)
@@ -70,9 +92,14 @@ public class FullImageAnalyse implements ImageAnalysis.Analyzer {
                 90, false
         );
 
+
+
 //        // 适应preview的全尺寸bitmap
-//        Bitmap fullImageBitmap = Bitmap.createBitmap(imageBitmap, 0, 0, imagewWidth, imageHeight, fullScreenTransform, false);
-//
+        Bitmap fullImageBitmap = Bitmap.createBitmap(imageBitmap, 0, 0, imagewWidth, imageHeight, fullScreenTransform, false);
+        boxLabelCanvas.setImageBitmap(fullImageBitmap);
+
+        Log.i("image","image size: "+imagewWidth+"/"+imageHeight+" preview size: "+previewWidth+"/"+previewHeight);
+
 //
 //        // 图片适应屏幕fill_start格式的bitmap
 //        Bitmap cropImageBitmap = Bitmap.createBitmap(
