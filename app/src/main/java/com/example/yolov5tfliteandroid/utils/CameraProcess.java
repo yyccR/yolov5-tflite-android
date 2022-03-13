@@ -7,11 +7,14 @@ import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.util.Log;
+import android.util.Rational;
 import android.util.Size;
 import android.view.Surface;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.AspectRatio;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
@@ -68,11 +71,17 @@ public class CameraProcess {
                 try {
                     ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
                     ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                            .setTargetResolution(new Size(480, 640))
-                            //.setTargetRotation(Surface.ROTATION_90)
+//                            .setTargetResolution(new Size(1080, 1920))
+                            .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+//                            .setTargetAspectRatioCustom(new Rational(16,9))
+//                            .setTargetRotation(Surface.ROTATION_90)
                             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build();
                     imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(context), analyzer);
-                    Preview previewBuilder = new Preview.Builder().build();
+                    Preview previewBuilder = new Preview.Builder()
+//                            .setTargetResolution(new Size(1080,1440))
+                            .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                            .build();
+//                    Log.i("builder", previewView.getHeight()+"/"+previewView.getWidth());
                     CameraSelector cameraSelector = new CameraSelector.Builder()
                             .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
                     previewBuilder.setSurfaceProvider(previewView.createSurfaceProvider());

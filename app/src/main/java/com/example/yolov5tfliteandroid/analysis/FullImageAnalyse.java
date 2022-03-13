@@ -81,7 +81,7 @@ public class FullImageAnalyse implements ImageAnalysis.Analyzer {
 //        yolov5TFLiteDetector.detect(imageBitmap);
 //        Log.i("image ","has alpha"+imageBitmap.hasAlpha());
 
-//        // 图片适应屏幕fill_start格式的bitmap
+        // 图片适应屏幕fill_start格式的bitmap
         double scale = Math.max(
                 previewHeight / (double) (rotation % 180 == 0 ? imagewWidth : imageHeight),
                 previewWidth / (double) (rotation % 180 == 0 ? imageHeight : imagewWidth)
@@ -93,12 +93,14 @@ public class FullImageAnalyse implements ImageAnalysis.Analyzer {
         );
 
 
-
-//        // 适应preview的全尺寸bitmap
+        // 适应preview的全尺寸bitmap
         Bitmap fullImageBitmap = Bitmap.createBitmap(imageBitmap, 0, 0, imagewWidth, imageHeight, fullScreenTransform, false);
-        boxLabelCanvas.setImageBitmap(fullImageBitmap);
+        Bitmap cropImageBitmap = Bitmap.createBitmap(fullImageBitmap, 0, 0, previewWidth, previewHeight);
 
-        Log.i("image","image size: "+imagewWidth+"/"+imageHeight+" preview size: "+previewWidth+"/"+previewHeight);
+//        boxLabelCanvas.setImageBitmap(cropImageBitmap);
+
+        Log.i("image","image size: "+imagewWidth+"/"+imageHeight+" preview size: "+previewWidth+"/"+previewHeight+
+                " crop size:"+cropImageBitmap.getWidth()+"/"+cropImageBitmap.getHeight());
 
 //
 //        // 图片适应屏幕fill_start格式的bitmap
