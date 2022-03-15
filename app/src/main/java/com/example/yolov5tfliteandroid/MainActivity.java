@@ -17,6 +17,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 
 import com.example.yolov5tfliteandroid.analysis.FullImageAnalyse;
 import com.example.yolov5tfliteandroid.analysis.FullScreenAnalyse;
+import com.example.yolov5tfliteandroid.detector.Yolov5TFLiteDetector;
 import com.example.yolov5tfliteandroid.utils.CameraProcess;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -29,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView inferenceTimeTextView;
     private TextView frameSizeTextView;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    private Yolov5TFLiteDetector yolov5TFLiteDetector;
+
     private CameraProcess cameraProcess = new CameraProcess();
 
     /**
@@ -97,9 +100,28 @@ public class MainActivity extends AppCompatActivity {
 
         cameraProcess.showCameraSupportSize(MainActivity.this);
 
+        // 加载模型
+        try{
+            this.yolov5TFLiteDetector = new Yolov5TFLiteDetector();
+            this.yolov5TFLiteDetector.initialModel(this);
+//            this.yolov5TFLiteDetector.addNNApiDelegate();
+//            this.yolov5TFLiteDetector.addGPUDelegate();
+            Log.i("model", "Success loading model" + this.yolov5TFLiteDetector.getModelFile());
+        } catch (Exception e) {
+            Log.e("image", "load model error: "+ e.getMessage()+e.toString());
+        }
+
         // 默认打开时时全图模式
         cameraPreviewMatch.removeAllViews();
-        FullImageAnalyse fullImageAnalyse = new FullImageAnalyse(MainActivity.this, cameraPreviewWrap,boxLabelCanvas, rotation);
+        boxLabelCanvas.setImageResource(0);
+        FullImageAnalyse fullImageAnalyse = new FullImageAnalyse(
+                MainActivity.this,
+                cameraPreviewWrap,
+                boxLabelCanvas,
+                rotation,
+                inferenceTimeTextView,
+                frameSizeTextView,
+                yolov5TFLiteDetector);
         cameraProcess.startCamera(MainActivity.this, fullImageAnalyse, cameraPreviewWrap);
 
         immersive.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -108,13 +130,27 @@ public class MainActivity extends AppCompatActivity {
                 if(b){
                     // 进入全屏模式
                     cameraPreviewWrap.removeAllViews();
-                    FullScreenAnalyse fullScreenAnalyse = new FullScreenAnalyse(cameraPreviewMatch, rotation);
+                    FullScreenAnalyse fullScreenAnalyse = new FullScreenAnalyse(MainActivity.this,
+                            cameraPreviewMatch,
+                            boxLabelCanvas,
+                            rotation,
+                            inferenceTimeTextView,
+                            frameSizeTextView,
+                            yolov5TFLiteDetector);
                     cameraProcess.startCamera(MainActivity.this, fullScreenAnalyse, cameraPreviewMatch);
 
                 }else{
                     // 进入全图模式
                     cameraPreviewMatch.removeAllViews();
-                    FullImageAnalyse fullImageAnalyse = new FullImageAnalyse(MainActivity.this, cameraPreviewWrap,boxLabelCanvas, rotation);
+                    boxLabelCanvas.setImageResource(0);
+                    FullImageAnalyse fullImageAnalyse = new FullImageAnalyse(
+                            MainActivity.this,
+                            cameraPreviewWrap,
+                            boxLabelCanvas,
+                            rotation,
+                            inferenceTimeTextView,
+                            frameSizeTextView,
+                            yolov5TFLiteDetector);
                     cameraProcess.startCamera(MainActivity.this, fullImageAnalyse, cameraPreviewWrap);
                 }
             }

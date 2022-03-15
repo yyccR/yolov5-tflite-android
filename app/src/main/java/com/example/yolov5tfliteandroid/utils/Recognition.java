@@ -4,38 +4,39 @@ import android.graphics.RectF;
 
 
 public class Recognition {
-    /**
-     * A unique identifier for what has been recognized. Specific to the class, not the instance of
-     * the object.
-     */
-    private final String id;
 
     /** Display name for the recognition. */
-    private final String labelName;
+    private Integer labelId;
+    private String labelName;
+    private Float labelScore;
 
     /**
      * A sortable score for how good the recognition is relative to others. Higher should be better.
      */
-    private final Float confidence;
+    private Float confidence;
+
 
     /** Optional location within the source image for the location of the recognized object. */
     private RectF location;
 
     public Recognition(
-            final String id, final String labelName, final Float confidence, final RectF location) {
-        this.id = id;
+            final int labelId, final String labelName, final Float labelScore,  final Float confidence, final RectF location) {
+        this.labelId = labelId;
+        this.labelScore = labelScore;
         this.labelName = labelName;
         this.confidence = confidence;
         this.location = location;
     }
 
-    public String getId() {
-        return id;
+    public Integer getLabelId() {
+        return labelId;
     }
 
     public String getLabelName() {
         return labelName;
     }
+
+    public Float getLabelScore() {return labelScore;}
 
     public Float getConfidence() {
         return confidence;
@@ -49,12 +50,23 @@ public class Recognition {
         this.location = location;
     }
 
+    public void setLabelName(String labelName) {this.labelName = labelName;}
+
+    public void setLabelId(int labelId) {this.labelId = labelId;}
+
+    public void setLabelScore(Float labelScore) {
+        this.labelScore = labelScore;
+    }
+
+    public void setConfidence(Float confidence) {
+        this.confidence = confidence;
+    }
+
     @Override
     public String toString() {
         String resultString = "";
-        if (id != null) {
-            resultString += "[" + id + "] ";
-        }
+
+        resultString += labelId + " ";
 
         if (labelName != null) {
             resultString += labelName + " ";

@@ -75,7 +75,8 @@ public class CameraProcess {
                             .setTargetAspectRatio(AspectRatio.RATIO_4_3)
 //                            .setTargetAspectRatioCustom(new Rational(16,9))
 //                            .setTargetRotation(Surface.ROTATION_90)
-                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build();
+                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                            .build();
                     imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(context), analyzer);
                     Preview previewBuilder = new Preview.Builder()
 //                            .setTargetResolution(new Size(1080,1440))
