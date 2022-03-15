@@ -41,11 +41,12 @@ public class Yolov5TFLiteDetector {
     private final float IOU_THRESHOLD = 0.25f;
     private final float IOU_CLASS_DUPLICATED_THRESHOLD = 0.7f;
     private final String MODEL_FILE = "yolov5s-fp16-320-metadata.tflite";
+//    private final String MODEL_FILE = "yolov5n-fp16-320.tflite";
     private final String LABEL_FILE = "coco_label.txt";
 
     private Interpreter tflite;
     private List<String> associatedAxisLabels;
-    Interpreter.Options options;
+    Interpreter.Options options = new Interpreter.Options();
 
 
     public String getModelFile() {
@@ -304,5 +305,12 @@ public class Yolov5TFLiteDetector {
         options.addDelegate(gpuDelegate);
     }
 
+    /**
+     * 添加线程数
+     * @param thread
+     */
+    public void addThread(int thread) {
+        options.setNumThreads(thread);
+    }
 
 }
