@@ -67,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
 //        setSupportActionBar(toolbar);
 
         // 打开app的时候隐藏顶部状态栏
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+//        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
 
         // 全屏画面
@@ -103,9 +104,10 @@ public class MainActivity extends AppCompatActivity {
         // 加载模型
         try{
             this.yolov5TFLiteDetector = new Yolov5TFLiteDetector();
-            this.yolov5TFLiteDetector.initialModel(this);
+//            this.yolov5TFLiteDetector.addThread(3);
 //            this.yolov5TFLiteDetector.addNNApiDelegate();
-//            this.yolov5TFLiteDetector.addGPUDelegate();
+            this.yolov5TFLiteDetector.addGPUDelegate();
+            this.yolov5TFLiteDetector.initialModel(this);
             Log.i("model", "Success loading model" + this.yolov5TFLiteDetector.getModelFile());
         } catch (Exception e) {
             Log.e("image", "load model error: "+ e.getMessage()+e.toString());
@@ -113,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
 
         // 默认打开时时全图模式
         cameraPreviewMatch.removeAllViews();
-        boxLabelCanvas.setImageResource(0);
         FullImageAnalyse fullImageAnalyse = new FullImageAnalyse(
                 MainActivity.this,
                 cameraPreviewWrap,
@@ -142,7 +143,6 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     // 进入全图模式
                     cameraPreviewMatch.removeAllViews();
-                    boxLabelCanvas.setImageResource(0);
                     FullImageAnalyse fullImageAnalyse = new FullImageAnalyse(
                             MainActivity.this,
                             cameraPreviewWrap,
