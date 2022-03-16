@@ -39,7 +39,7 @@ public class Yolov5TFLiteDetector {
     private final Boolean IS_INT8 = false;
     private final float DETECT_THRESHOLD = 0.4f;
     private final float IOU_THRESHOLD = 0.25f;
-    private final float IOU_CLASS_DUPLICATED_THRESHOLD = 0.7f;
+    private final float IOU_CLASS_DUPLICATED_THRESHOLD = 0.75f;
     private final String MODEL_FILE = "yolov5s-fp16-320-metadata.tflite";
 //    private final String MODEL_FILE = "yolov5n-fp16-320.tflite";
     private final String LABEL_FILE = "coco_label.txt";
@@ -151,7 +151,7 @@ public class Yolov5TFLiteDetector {
         // 非极大抑制输出
         ArrayList<Recognition> nmsRecognitions = nms(allRecognitions);
         // 第二次非极大抑制, 过滤那些同个目标识别到2个以上目标边框为不同类别的
-        ArrayList<Recognition> nmsFilterBoxDuplicationRecognitions = nms(nmsRecognitions);
+        ArrayList<Recognition> nmsFilterBoxDuplicationRecognitions = nmsAllClass(nmsRecognitions);
 
         // 更新label信息
         for(Recognition recognition : nmsFilterBoxDuplicationRecognitions){
