@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">yolov5-tflite-android</string>
+
+    <string-array name="model">
+        <item>yolov5s</item>
+        <item>yolov5n </item>
+        <item>yolov5m</item>
+    </string-array>
 </resources>

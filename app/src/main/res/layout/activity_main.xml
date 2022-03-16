@@ -105,10 +105,32 @@
             android:layout_marginBottom="5dp" />
 
         <TextView
+            android:id="@+id/model_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@id/immersive_name"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:layout_marginLeft="5dp"
+            android:layout_marginBottom="5dp"
+            android:textColor="#FFFFFF"
+            android:text="model: " />
+
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@id/immersive"
+            app:layout_constraintRight_toRightOf="parent"
+            android:entries="@array/model"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:layout_marginBottom="5dp" />
+
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
-            app:layout_constraintBottom_toTopOf="@id/immersive"
+            app:layout_constraintBottom_toTopOf="@id/model_name"
             app:layout_constraintLeft_toLeftOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

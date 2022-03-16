@@ -37,11 +37,12 @@ public class Yolov5TFLiteDetector {
     private final Size INPNUT_SIZE = new Size(320, 320);
     private final int[] OUTPUT_SIZE = new int[]{1, 6300, 85};
     private final Boolean IS_INT8 = false;
-    private final float DETECT_THRESHOLD = 0.4f;
-    private final float IOU_THRESHOLD = 0.25f;
+    private final float DETECT_THRESHOLD = 0.35f;
+    private final float IOU_THRESHOLD = 0.45f;
     private final float IOU_CLASS_DUPLICATED_THRESHOLD = 0.75f;
     private final String MODEL_FILE = "yolov5s-fp16-320-metadata.tflite";
 //    private final String MODEL_FILE = "yolov5n-fp16-320.tflite";
+//    private final String MODEL_FILE = "yolov5m-fp16-320.tflite";
     private final String LABEL_FILE = "coco_label.txt";
 
     private Interpreter tflite;
