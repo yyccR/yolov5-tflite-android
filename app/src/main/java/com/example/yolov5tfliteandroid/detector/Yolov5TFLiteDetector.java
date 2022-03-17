@@ -7,6 +7,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.util.Log;
 import android.util.Size;
+import android.widget.Toast;
 
 import com.example.yolov5tfliteandroid.utils.Recognition;
 
@@ -37,21 +38,37 @@ public class Yolov5TFLiteDetector {
     private final Size INPNUT_SIZE = new Size(320, 320);
     private final int[] OUTPUT_SIZE = new int[]{1, 6300, 85};
     private final Boolean IS_INT8 = false;
-    private final float DETECT_THRESHOLD = 0.35f;
+    private final float DETECT_THRESHOLD = 0.45f;
     private final float IOU_THRESHOLD = 0.45f;
     private final float IOU_CLASS_DUPLICATED_THRESHOLD = 0.75f;
-    private final String MODEL_FILE = "yolov5s-fp16-320-metadata.tflite";
-//    private final String MODEL_FILE = "yolov5n-fp16-320.tflite";
-//    private final String MODEL_FILE = "yolov5m-fp16-320.tflite";
+    private final String MODEL_YOLOV5S = "yolov5s-fp16-320-metadata.tflite";
+    private final String MODEL_YOLOV5N =  "yolov5n-fp16-320.tflite";
+    private final String MODEL_YOLOV5M = "yolov5m-fp16-320.tflite";
     private final String LABEL_FILE = "coco_label.txt";
+    private String MODEL_FILE;
 
     private Interpreter tflite;
     private List<String> associatedAxisLabels;
     Interpreter.Options options = new Interpreter.Options();
 
-
     public String getModelFile() {
         return this.MODEL_FILE;
+    }
+
+    public void setModelFile(String modelFile){
+        switch (modelFile) {
+            case "yolov5s":
+                MODEL_FILE = MODEL_YOLOV5S;
+                break;
+            case "yolov5n":
+                MODEL_FILE = MODEL_YOLOV5N;
+                break;
+            case "yolov5m":
+                MODEL_FILE = MODEL_YOLOV5M;
+                break;
+            default:
+                Log.i("tfliteSupport", "Only yolov5s/n/m can be load!");
+        }
     }
 
     public String getLabelFile() {
