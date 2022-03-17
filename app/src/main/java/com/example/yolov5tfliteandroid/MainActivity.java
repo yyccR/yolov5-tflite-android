@@ -27,6 +27,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 public class MainActivity extends AppCompatActivity {
 
+    private boolean IS_FULL_SCREEN = false;
+
     private PreviewView cameraPreviewMatch;
     private PreviewView cameraPreviewWrap;
     private ImageView boxLabelCanvas;
@@ -42,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 获取屏幕旋转角度,0表示拍照出来的图片是横屏
      *
-     * @return
      */
     protected int getScreenOrientation() {
         switch (getWindowManager().getDefaultDisplay().getRotation()) {
@@ -130,16 +131,29 @@ public class MainActivity extends AppCompatActivity {
                 String model = (String) adapterView.getItemAtPosition(i);
                 Toast.makeText(MainActivity.this, "loading model: " + model, Toast.LENGTH_LONG).show();
                 initModel(model);
-                cameraPreviewMatch.removeAllViews();
-                FullImageAnalyse fullImageAnalyse = new FullImageAnalyse(
-                        MainActivity.this,
-                        cameraPreviewWrap,
-                        boxLabelCanvas,
-                        rotation,
-                        inferenceTimeTextView,
-                        frameSizeTextView,
-                        yolov5TFLiteDetector);
-                cameraProcess.startCamera(MainActivity.this, fullImageAnalyse, cameraPreviewWrap);
+                if(IS_FULL_SCREEN){
+                    cameraPreviewWrap.removeAllViews();
+                    FullScreenAnalyse fullScreenAnalyse = new FullScreenAnalyse(MainActivity.this,
+                            cameraPreviewMatch,
+                            boxLabelCanvas,
+                            rotation,
+                            inferenceTimeTextView,
+                            frameSizeTextView,
+                            yolov5TFLiteDetector);
+                    cameraProcess.startCamera(MainActivity.this, fullScreenAnalyse, cameraPreviewMatch);
+                }else{
+                    cameraPreviewMatch.removeAllViews();
+                    FullImageAnalyse fullImageAnalyse = new FullImageAnalyse(
+                            MainActivity.this,
+                            cameraPreviewWrap,
+                            boxLabelCanvas,
+                            rotation,
+                            inferenceTimeTextView,
+                            frameSizeTextView,
+                            yolov5TFLiteDetector);
+                    cameraProcess.startCamera(MainActivity.this, fullImageAnalyse, cameraPreviewWrap);
+                }
+
 
             }
             @Override
@@ -152,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
         immersive.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                IS_FULL_SCREEN = b;
                 if (b) {
                     // 进入全屏模式
                     cameraPreviewWrap.removeAllViews();
