@@ -38,7 +38,7 @@ public class Yolov5TFLiteDetector {
     private final Size INPNUT_SIZE = new Size(320, 320);
     private final int[] OUTPUT_SIZE = new int[]{1, 6300, 85};
     private final Boolean IS_INT8 = false;
-    private final float DETECT_THRESHOLD = 0.25f;
+    private final float DETECT_THRESHOLD = 0.2f;
     private final float IOU_THRESHOLD = 0.45f;
     private final float IOU_CLASS_DUPLICATED_THRESHOLD = 0.7f;
     private final String MODEL_YOLOV5S = "yolov5s-fp16-320-metadata.tflite";
@@ -178,7 +178,7 @@ public class Yolov5TFLiteDetector {
             recognition.setLabelName(labelName);
         }
 
-        return nmsRecognitions;
+        return nmsFilterBoxDuplicationRecognitions;
     }
 
     /**

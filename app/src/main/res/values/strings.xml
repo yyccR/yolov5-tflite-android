@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">yolov5-tflite-android</string>
+    <string name="app_name">yolov5-tflite</string>
 
     <string-array name="model">
         <item>yolov5s</item>
