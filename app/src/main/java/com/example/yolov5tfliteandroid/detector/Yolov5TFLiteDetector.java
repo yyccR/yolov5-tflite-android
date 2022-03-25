@@ -12,16 +12,22 @@ import android.widget.Toast;
 import com.example.yolov5tfliteandroid.utils.Recognition;
 
 import org.checkerframework.checker.nullness.Opt;
+import org.checkerframework.checker.units.qual.C;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Delegate;
 import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.gpu.GpuDelegate;
 import org.tensorflow.lite.nnapi.NnApiDelegate;
 import org.tensorflow.lite.support.common.FileUtil;
+import org.tensorflow.lite.support.common.TensorProcessor;
+import org.tensorflow.lite.support.common.ops.CastOp;
+import org.tensorflow.lite.support.common.ops.DequantizeOp;
 import org.tensorflow.lite.support.common.ops.NormalizeOp;
+import org.tensorflow.lite.support.common.ops.QuantizeOp;
 import org.tensorflow.lite.support.image.ImageProcessor;
 import org.tensorflow.lite.support.image.TensorImage;
 import org.tensorflow.lite.support.image.ops.ResizeOp;
+import org.tensorflow.lite.support.metadata.MetadataExtractor;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 import java.io.IOException;
@@ -37,13 +43,16 @@ public class Yolov5TFLiteDetector {
 
     private final Size INPNUT_SIZE = new Size(320, 320);
     private final int[] OUTPUT_SIZE = new int[]{1, 6300, 85};
-    private final Boolean IS_INT8 = false;
+    private Boolean IS_INT8 = false;
     private final float DETECT_THRESHOLD = 0.25f;
     private final float IOU_THRESHOLD = 0.45f;
     private final float IOU_CLASS_DUPLICATED_THRESHOLD = 0.7f;
     private final String MODEL_YOLOV5S = "yolov5s-fp16-320-metadata.tflite";
     private final String MODEL_YOLOV5N =  "yolov5n-fp16-320.tflite";
     private final String MODEL_YOLOV5M = "yolov5m-fp16-320.tflite";
+    private final String MODEL_YOLOV5S_INT8 = "yolov5s-int8-320.tflite";
+    MetadataExtractor.QuantizationParams input5SINT8QuantParams = new MetadataExtractor.QuantizationParams(0.003921568859368563f, 0);
+    MetadataExtractor.QuantizationParams output5SINT8QuantParams = new MetadataExtractor.QuantizationParams(0.006305381190031767f, 5);
     private final String LABEL_FILE = "coco_label.txt";
     private String MODEL_FILE;
 
@@ -58,16 +67,23 @@ public class Yolov5TFLiteDetector {
     public void setModelFile(String modelFile){
         switch (modelFile) {
             case "yolov5s":
+                IS_INT8 = false;
                 MODEL_FILE = MODEL_YOLOV5S;
                 break;
             case "yolov5n":
+                IS_INT8 = false;
                 MODEL_FILE = MODEL_YOLOV5N;
                 break;
             case "yolov5m":
+                IS_INT8 = false;
                 MODEL_FILE = MODEL_YOLOV5M;
                 break;
+            case "yolov5s-int8":
+                IS_INT8 = true;
+                MODEL_FILE = MODEL_YOLOV5S_INT8;
+                break;
             default:
-                Log.i("tfliteSupport", "Only yolov5s/n/m can be load!");
+                Log.i("tfliteSupport", "Only yolov5s/n/m/sint8 can be load!");
         }
     }
 
@@ -109,25 +125,52 @@ public class Yolov5TFLiteDetector {
     public ArrayList<Recognition> detect(Bitmap bitmap) {
 
         // yolov5s-tflite的输入是:[1, 320, 320,3], 摄像头每一帧图片需要resize,再归一化
-        ImageProcessor imageProcessor =
-                new ImageProcessor.Builder()
-                        .add(new ResizeOp(INPNUT_SIZE.getHeight(), INPNUT_SIZE.getWidth(), ResizeOp.ResizeMethod.BILINEAR))
-                        .add(new NormalizeOp(0, 255))
-                        .build();
-        TensorImage yolov5sTfliteInput = new TensorImage(DataType.FLOAT32);
+        TensorImage yolov5sTfliteInput;
+        ImageProcessor imageProcessor;
+        if(IS_INT8){
+            imageProcessor =
+                    new ImageProcessor.Builder()
+                            .add(new ResizeOp(INPNUT_SIZE.getHeight(), INPNUT_SIZE.getWidth(), ResizeOp.ResizeMethod.BILINEAR))
+                            .add(new NormalizeOp(0, 255))
+                            .add(new QuantizeOp(input5SINT8QuantParams.getZeroPoint(), input5SINT8QuantParams.getScale()))
+                            .add(new CastOp(DataType.UINT8))
+                            .build();
+            yolov5sTfliteInput = new TensorImage(DataType.UINT8);
+        }else{
+            imageProcessor =
+                    new ImageProcessor.Builder()
+                            .add(new ResizeOp(INPNUT_SIZE.getHeight(), INPNUT_SIZE.getWidth(), ResizeOp.ResizeMethod.BILINEAR))
+                            .add(new NormalizeOp(0, 255))
+                            .build();
+            yolov5sTfliteInput = new TensorImage(DataType.FLOAT32);
+        }
+
         yolov5sTfliteInput.load(bitmap);
         yolov5sTfliteInput = imageProcessor.process(yolov5sTfliteInput);
 
 
         // yolov5s-tflite的输出是:[1, 6300, 85], 可以从v5的GitHub release处找到相关tflite模型, 输出是[0,1], 处理到320.
-        TensorBuffer probabilityBuffer =
-                TensorBuffer.createFixedSize(OUTPUT_SIZE, DataType.FLOAT32);
+        TensorBuffer probabilityBuffer;
+        if(IS_INT8){
+            probabilityBuffer = TensorBuffer.createFixedSize(OUTPUT_SIZE, DataType.UINT8);
+        }else{
+            probabilityBuffer = TensorBuffer.createFixedSize(OUTPUT_SIZE, DataType.FLOAT32);
+        }
 
         // 推理计算
         if (null != tflite) {
             // 这里tflite默认会加一个batch=1的纬度
             tflite.run(yolov5sTfliteInput.getBuffer(), probabilityBuffer.getBuffer());
         }
+
+        // 这里输出反量化,需要是模型tflite.run之后执行.
+        if(IS_INT8){
+            TensorProcessor tensorProcessor = new TensorProcessor.Builder()
+                    .add(new DequantizeOp(output5SINT8QuantParams.getZeroPoint(), output5SINT8QuantParams.getScale()))
+                    .build();
+            probabilityBuffer = tensorProcessor.process(probabilityBuffer);
+        }
+
         // 输出数据被平铺了出来
         float[] recognitionArray = probabilityBuffer.getFloatArray();
         // 这里将flatten的数组重新解析(xywh,obj,classes).
@@ -144,9 +187,10 @@ public class Yolov5TFLiteDetector {
             int xmax = (int) Math.min(INPNUT_SIZE.getWidth(), x + w / 2.);
             int ymax = (int) Math.min(INPNUT_SIZE.getHeight(), y + h / 2.);
             float confidence = recognitionArray[4 + gridStride];
-
             float[] classScores = Arrays.copyOfRange(recognitionArray, 5 + gridStride, 85 + gridStride);
-
+            if(i % 1000 == 0){
+                Log.i("tfliteSupport","x,y,w,h,conf:"+x+","+y+","+w+","+h+","+confidence);
+            }
             int labelId = 0;
             float maxLabelScores = 0.f;
             for (int j = 0; j < classScores.length; j++) {
@@ -166,6 +210,7 @@ public class Yolov5TFLiteDetector {
             allRecognitions.add(
                     r);
         }
+//        Log.i("tfliteSupport", "recognize data size: "+allRecognitions.size());
 
         // 非极大抑制输出
         ArrayList<Recognition> nmsRecognitions = nms(allRecognitions);
@@ -207,8 +252,10 @@ public class Yolov5TFLiteDetector {
 
             // 相同类别的过滤出来, 且obj要大于设定的阈值
             for (int j = 0; j < allRecognitions.size(); ++j) {
+//                if (allRecognitions.get(j).getLabelId() == i) {
                 if (allRecognitions.get(j).getLabelId() == i && allRecognitions.get(j).getConfidence() > DETECT_THRESHOLD) {
                     pq.add(allRecognitions.get(j));
+//                    Log.i("tfliteSupport", allRecognitions.get(j).toString());
                 }
             }
 
