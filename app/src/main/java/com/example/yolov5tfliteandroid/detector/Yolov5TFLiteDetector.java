@@ -9,6 +9,7 @@ import android.util.Log;
 import android.util.Size;
 import android.widget.Toast;
 
+import com.example.yolov5tfliteandroid.MainActivity;
 import com.example.yolov5tfliteandroid.utils.Recognition;
 
 import org.checkerframework.checker.nullness.Opt;
@@ -16,7 +17,9 @@ import org.checkerframework.checker.units.qual.C;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Delegate;
 import org.tensorflow.lite.Interpreter;
+import org.tensorflow.lite.InterpreterFactory;
 import org.tensorflow.lite.gpu.GpuDelegate;
+import org.tensorflow.lite.gpu.CompatibilityList;
 import org.tensorflow.lite.nnapi.NnApiDelegate;
 import org.tensorflow.lite.support.common.FileUtil;
 import org.tensorflow.lite.support.common.TensorProcessor;
@@ -29,6 +32,7 @@ import org.tensorflow.lite.support.image.TensorImage;
 import org.tensorflow.lite.support.image.ops.ResizeOp;
 import org.tensorflow.lite.support.metadata.MetadataExtractor;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
+import org.tensorflow.lite.support.metadata.MetadataParser;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -51,9 +55,9 @@ public class Yolov5TFLiteDetector {
     private final String MODEL_YOLOV5N =  "yolov5n-fp16-320.tflite";
     private final String MODEL_YOLOV5M = "yolov5m-fp16-320.tflite";
     private final String MODEL_YOLOV5S_INT8 = "yolov5s-int8-320.tflite";
+    private final String LABEL_FILE = "coco_label.txt";
     MetadataExtractor.QuantizationParams input5SINT8QuantParams = new MetadataExtractor.QuantizationParams(0.003921568859368563f, 0);
     MetadataExtractor.QuantizationParams output5SINT8QuantParams = new MetadataExtractor.QuantizationParams(0.006305381190031767f, 5);
-    private final String LABEL_FILE = "coco_label.txt";
     private String MODEL_FILE;
 
     private Interpreter tflite;
@@ -188,9 +192,9 @@ public class Yolov5TFLiteDetector {
             int ymax = (int) Math.min(INPNUT_SIZE.getHeight(), y + h / 2.);
             float confidence = recognitionArray[4 + gridStride];
             float[] classScores = Arrays.copyOfRange(recognitionArray, 5 + gridStride, 85 + gridStride);
-            if(i % 1000 == 0){
-                Log.i("tfliteSupport","x,y,w,h,conf:"+x+","+y+","+w+","+h+","+confidence);
-            }
+//            if(i % 1000 == 0){
+//                Log.i("tfliteSupport","x,y,w,h,conf:"+x+","+y+","+w+","+h+","+confidence);
+//            }
             int labelId = 0;
             float maxLabelScores = 0.f;
             for (int j = 0; j < classScores.length; j++) {
@@ -367,8 +371,15 @@ public class Yolov5TFLiteDetector {
      * 添加GPU代理
      */
     public void addGPUDelegate() {
-        GpuDelegate gpuDelegate = new GpuDelegate();
-        options.addDelegate(gpuDelegate);
+        CompatibilityList compatibilityList = new CompatibilityList();
+        if(compatibilityList.isDelegateSupportedOnThisDevice()){
+            GpuDelegate.Options delegateOptions = compatibilityList.getBestOptionsForThisDevice();
+            GpuDelegate gpuDelegate = new GpuDelegate(delegateOptions);
+            options.addDelegate(gpuDelegate);
+            Log.i("tfliteSupport", "using gpu delegate.");
+        } else {
+            addThread(4);
+        }
     }
 
     /**
