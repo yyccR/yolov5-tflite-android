@@ -133,9 +133,14 @@ public class FullImageAnalyse implements ImageAnalysis.Analyzer {
             previewToModelTransform.invert(modelToPreviewTransform);
 
             ArrayList<Recognition> recognitions = yolov5TFLiteDetector.detect(modelInputBitmap);
+//            ArrayList<Recognition> recognitions = yolov5TFLiteDetector.detect(imageBitmap);
 
             Bitmap emptyCropSizeBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888);
             Canvas cropCanvas = new Canvas(emptyCropSizeBitmap);
+//            Paint white = new Paint();
+//            white.setColor(Color.WHITE);
+//            white.setStyle(Paint.Style.FILL);
+//            cropCanvas.drawRect(new RectF(0,0,previewWidth, previewHeight), white);
             // 边框画笔
             Paint boxPaint = new Paint();
             boxPaint.setStrokeWidth(5);
@@ -159,6 +164,7 @@ public class FullImageAnalyse implements ImageAnalysis.Analyzer {
             long costTime = (end - start);
             image.close();
             emitter.onNext(new Result(costTime, emptyCropSizeBitmap));
+//            emitter.onNext(new Result(costTime, imageBitmap));
 
         }).subscribeOn(Schedulers.io()) // 这里定义被观察者,也就是上面代码的线程, 如果没定义就是主线程同步, 非异步
                 // 这里就是回到主线程, 观察者接受到emitter发送的数据进行处理

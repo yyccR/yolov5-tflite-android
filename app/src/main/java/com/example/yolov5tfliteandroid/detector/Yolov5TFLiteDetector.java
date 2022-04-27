@@ -52,6 +52,7 @@ public class Yolov5TFLiteDetector {
     private final float IOU_THRESHOLD = 0.45f;
     private final float IOU_CLASS_DUPLICATED_THRESHOLD = 0.7f;
     private final String MODEL_YOLOV5S = "yolov5s-fp16-320-metadata.tflite";
+//    private final String MODEL_YOLOV5S = "yolov5s-dynamic.tflite";
     private final String MODEL_YOLOV5N =  "yolov5n-fp16-320.tflite";
     private final String MODEL_YOLOV5M = "yolov5m-fp16-320.tflite";
     private final String MODEL_YOLOV5S_INT8 = "yolov5s-int8-320.tflite";
@@ -362,8 +363,17 @@ public class Yolov5TFLiteDetector {
         NnApiDelegate nnApiDelegate = null;
         // Initialize interpreter with NNAPI delegate for Android Pie or above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+//            NnApiDelegate.Options nnApiOptions = new NnApiDelegate.Options();
+//            nnApiOptions.setAllowFp16(true);
+//            nnApiOptions.setUseNnapiCpu(true);
+            //ANEURALNETWORKS_PREFER_LOW_POWER：倾向于以最大限度减少电池消耗的方式执行。这种设置适合经常执行的编译。
+            //ANEURALNETWORKS_PREFER_FAST_SINGLE_ANSWER：倾向于尽快返回单个答案，即使这会耗费更多电量。这是默认值。
+            //ANEURALNETWORKS_PREFER_SUSTAINED_SPEED：倾向于最大限度地提高连续帧的吞吐量，例如，在处理来自相机的连续帧时。
+//            nnApiOptions.setExecutionPreference(NnApiDelegate.Options.EXECUTION_PREFERENCE_SUSTAINED_SPEED);
+//            nnApiDelegate = new NnApiDelegate(nnApiOptions);
             nnApiDelegate = new NnApiDelegate();
             options.addDelegate(nnApiDelegate);
+            Log.i("tfliteSupport", "using nnapi delegate.");
         }
     }
 

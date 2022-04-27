@@ -81,6 +81,7 @@ public class CameraProcess {
                     Preview previewBuilder = new Preview.Builder()
 //                            .setTargetResolution(new Size(1080,1440))
                             .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+//                            .setTargetRotation(Surface.ROTATION_90)
                             .build();
 //                    Log.i("builder", previewView.getHeight()+"/"+previewView.getWidth());
                     CameraSelector cameraSelector = new CameraSelector.Builder()
