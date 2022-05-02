@@ -1,5 +1,9 @@
 ## Deploy yolov5.tflite in android
 
+- [Bilibili视频讲解地址: 《yolov5 tflite量化原理及android部署详解》](https://www.bilibili.com/video/BV1La411e7NC?spm_id_from=333.999.0.0)
+- [Bilibili视频讲解PPT文件: yolov5_tflite_android_bilibili_talk_ppt.pdf](https://github.com/yyccR/yolov5-tflite-android/raw/master/yolov5_tflite_android_bilibili_talk_ppt.pdf)
+- [Bilibili视频讲解PPT文件: yolov5_tflite_android_bilibili_talk_ppt.pdf（gitee链接）](https://gitee.com/yyccR/yolov5-tflite-android/raw/master/yolov5_tflite_android_bilibili_talk_ppt.pdf)
+
 ### 测试效果
 ---
 
