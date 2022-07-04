@@ -192,7 +192,7 @@ public class Yolov5TFLiteDetector {
             int xmax = (int) Math.min(INPNUT_SIZE.getWidth(), x + w / 2.);
             int ymax = (int) Math.min(INPNUT_SIZE.getHeight(), y + h / 2.);
             float confidence = recognitionArray[4 + gridStride];
-            float[] classScores = Arrays.copyOfRange(recognitionArray, 5 + gridStride, 85 + gridStride);
+            float[] classScores = Arrays.copyOfRange(recognitionArray, 5 + gridStride, this.OUTPUT_SIZE[2] + gridStride);
 //            if(i % 1000 == 0){
 //                Log.i("tfliteSupport","x,y,w,h,conf:"+x+","+y+","+w+","+h+","+confidence);
 //            }
